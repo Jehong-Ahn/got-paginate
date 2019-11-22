@@ -1,37 +1,53 @@
-# NPM Module Boilerplate
 
-[![Build Status](https://travis-ci.org/flexdinesh/npm-module-boilerplate.svg?branch=master)](https://travis-ci.org/flexdinesh/npm-module-boilerplate) [![dependencies Status](https://david-dm.org/flexdinesh/npm-module-boilerplate/status.svg)](https://david-dm.org/flexdinesh/npm-module-boilerplate) [![devDependencies Status](https://david-dm.org/flexdinesh/npm-module-boilerplate/dev-status.svg)](https://david-dm.org/flexdinesh/npm-module-boilerplate?type=dev) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+## Basic Usage
 
-**Start developing your NPM module in seconds** ✨
+```js
+import createGotPaginate from 'got-paginate';
 
-Readymade boilerplate setup with all the best practices to kick start your npm/node module development.
+const client = createGotPaginate({
+  prefixUrl: 'http://foo.bar',
+  responseType: 'json',
+});
 
-Happy hacking =)
+// paging with numbers
 
-# Features
+const listItems = client('items', {
+  paging: {
+    number: 1,
+    requestPath: 'searchParams.page',
+  },
+});
 
-* **ES6/ESNext** - Write _ES6_ code and _Babel_ will transpile it to ES5 for backwards compatibility
-* **Test** - _Mocha_ with _Istanbul_ coverage
-* **Lint** - Preconfigured _ESlint_ with _Airbnb_ config
-* **CI** - _TravisCI_ configuration setup
-* **Minify** - Built code will be minified for performance
+const items1 = await listItems.next();
+// http://foo.bar/items?page=1
 
-# Commands
-- `npm run clean` - Remove `lib/` directory
-- `npm test` - Run tests with linting and coverage results.
-- `npm test:only` - Run tests without linting or coverage.
-- `npm test:watch` - You can even re-run tests on file changes!
-- `npm test:prod` - Run tests with minified code.
-- `npm run test:examples` - Test written examples on pure JS for better understanding module usage.
-- `npm run lint` - Run ESlint with airbnb-config
-- `npm run cover` - Get coverage report for your code.
-- `npm run build` - Babel will transpile ES6 => ES5 and minify the code.
-- `npm run prepublish` - Hook for npm. Do all the checks before publishing your module.
+const items2 = await listItems.next();
+// http://foo.bar/items?page=2
+```
 
-# Installation
-Just clone this repo and remove `.git` folder.
+```js
+// paging with tokens
 
+const listUsers = client('users', {
+  paging: {
+    token: null,
+    requestPath: 'searchParams.token',
+    responsePath: 'body.nextToken',
+  },
+});
 
-# License
+const users1 = await listUsers.next();
+// http://foo.bar/items
+// { "body": { "nextToken": "f41f4328", users: [...] } }
 
-MIT © Dinesh Pandiyan
+const users2 = await listUsers.next();
+// http://foo.bar/items?token=f41f4328
+// { "body": { "nextToken": "987dsas1", users: [...] } }
+```
+
+```js
+// without paging
+
+const userProfile = await client('user/10');
+// { "body": { "id": 10, "name": ... } }
+```
